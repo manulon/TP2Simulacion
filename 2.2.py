@@ -52,6 +52,89 @@ sistema = {"p00" : 0.93, "p01" : 0.07, "p02" : 0, "p03": 0, "p04": 0,
 		   "p30": 0, "p31": 0, "p32": 0.05,"p33":0.80, "p34":0.15,
 		   "p40": 0, "p41": 0, "p42": 0,"p43":0, "p44":1}
 
+inversa = {
+	"q00" : 26.1905, "q01" : 16.6667, "q02" : 10.0000, "q03" : 6.66667,
+	"q10" : 11.9048, "q11" : 16.6667, "q12" : 10.0000, "q13" : 6.66667,
+	"q20" : 9.5238, "q21" : 13.3333, "q22" : 13.3333, "q23" : 6.66667,
+	"q30" : 2.3810, "q31" : 3.3333, "q32" : 3.3333, "q33" : 6.66667
+}
+
+def sistema_verificacion(sistema,inversa):
+	'''La matriz inversa contiene el número promedio de visitas a cada estado'''
+	'''Al ser el estado Dead un estado absorbente nos interesa saber la cantidad
+	de dias que se espera que pasen hasta llegar a el, partiendo desde cada uno de los
+	estados'''
+	'''El tiempo promedio antes de ser infectado es el indicado en la posicion (0,0)
+	de la matriz inversa'''
+	tinfectado = inversa["q00"]
+	print("Tiempo promedio antes de infectarse: " + str(tinfectado) + " dias")
+
+	'''Para obtener el tiempo promedio desde el estado Sano hasta dead sumamos todos
+	los elementos de la primera fila'''
+	tsanoamorir = inversa["q00"] + inversa["q01"] + inversa["q02"] + inversa["q03"]
+	print("Tiempo promedio desde el estado Sano hasta morir: " +
+		str(tsanoamorir) + " dias")
+
+	'''De manera analoga calculamos el resto de las posibilidades''' 
+	tinfectadoamorir = inversa["q01"] + inversa["q02"] + inversa["q03"]
+	print("Tiempo promedio desde el estado Infectado hasta morir: " +
+		str(tinfectadoamorir) + " dias")
+	thospitalizadoamorir = inversa["q02"] + inversa["q03"]
+	print("Tiempo promedio desde el estado Hospitalizado hasta morir: " +
+		str(thospitalizadoamorir) + " dias")
+	ticuamorir = inversa["q03"]
+	print("Tiempo promedio desde el estado ICU hasta morir: " +
+		str(ticuamorir) + " dias")
+	print("")
+
+	'''Ahora queremos calcular las probabilidades de que un paciente muera empezando en cualquiera
+	de los estados, en una cantidad de dias definidos que son 2, 4, 8 y 16'''
+	'''Esto se puede calcular con la propiedad de Markov: P**M = P * P * ... * P (M dias) '''
+
+	'''Calculamos la probabilidad de llegar al estado Dead en 2 dias'''
+	'''Para ello nos interesa calcular P**2 y mirar los valores de la ultima columna'''
+	print("La probabilidad de morir en 2 dias desde estado Sano es: " +
+		str(sistema["p00"] * sistema["p03"] + sistema["p01"] * sistema["p14"] 
+		+ sistema["p02"] * sistema["p24"] + sistema["p03"] * sistema["p34"]
+		+ sistema["p04"] * sistema["p44"]))
+
+	print("La probabilidad de morir en 2 dias desde estado Infectado es: " +
+		str(sistema["p10"] * sistema["p03"] + sistema["p11"] * sistema["p14"] 
+		+ sistema["p12"] * sistema["p24"] + sistema["p13"] * sistema["p34"]
+		+ sistema["p14"] * sistema["p44"]))
+
+	print("La probabilidad de morir en 2 dias desde estado Hospitalizado es: " +
+		str(sistema["p20"] * sistema["p03"] + sistema["p21"] * sistema["p14"] 
+		+ sistema["p22"] * sistema["p24"] + sistema["p23"] * sistema["p34"]
+		+ sistema["p24"] * sistema["p44"]))
+
+	print("La probabilidad de morir en 2 dias desde estado ICU es: " +
+		str(sistema["p30"] * sistema["p03"] + sistema["p31"] * sistema["p14"] 
+		+ sistema["p32"] * sistema["p24"] + sistema["p33"] * sistema["p34"]
+		+ sistema["p34"] * sistema["p44"]))
+	
+	'''Para calcular para los dias 4, 8 y 16 es el mismo procedimiento, se calcula 
+	P**4 = P*P*P*P, P**8 = P*P*P*P*P*P*P*P, P**16 = P*P*P*P*P*P*P*P*P*P*P*P*P*P*P*P
+	y luego se miran los valores de la ultima columna'''
+
+	'''Vemos un grafico con el tiempo promedio hasta morir'''
+	#Se muestran graficos para visualizar los resultados
+	y = ["Sano","Infectado","Hospitalizado","ICU"]
+	estados = [tsanoamorir, tinfectadoamorir, thospitalizadoamorir, ticuamorir]
+	plt.ylabel('Cantidad de dias promedio')
+	plt.xlabel('Estado inicial')
+	plt.title("Dias promedio hasta morir")
+	plt.bar(y,estados)
+	plt.show()
+
+	'''Analogamente vemos un grafico con la probabilidad de morir en 2 dias desde cada estado'''
+	y = ["Sano","Infectado","Hospitalizado","ICU"]
+	estados = [0, 0.0075, 0.0075, 0.27]
+	plt.ylabel('Probabilidad')
+	plt.xlabel('Estado inicial')
+	plt.title("Probabilidad de morir en 2 dias partiendo de cada estado")
+	plt.bar(y,estados)
+	plt.show()
 
 def estado_futuro(sistema,a,b,c,d):
 	future = random.random()
@@ -179,7 +262,11 @@ def curvas_evolucion(poblacion,sistema):
 	plt.plot(y,cantidad_dead)
 	plt.show()
 
+
 def main():
+	#Puntos A y B
+	#sistema_verificacion(sistema, inversa)
+
 	#PUNTO C
 	#evolucion_sistema(sistema)
 
